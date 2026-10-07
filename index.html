@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PremiApps Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: app shell. Top bar with role switch, tab nav, then view area (katalog, riwayat, notifikasi, admin). Checkout is a modal with 4 steps mapped to Input-Proses-Output. */
+:root {
+  --paper: #F2F0FA; --card: #FFFFFF; --ink: #1D1A3B; --ink-soft: #55517A;
+  --violet: #4F35E8; --violet-deep: #2E1F9E; --amber: #FFB629; --green: #1F9D6B; --red: #C93B3B;
+  --line: #D9D5EE;
+  --font-display: "Bricolage Grotesque", "Segoe UI", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.5; min-height: 100vh; }
+h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+p { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.wrap { width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: 20px; }
+.mono { font-family: var(--font-mono); }
+.label { font-family: var(--font-mono); font-weight: 600; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--violet); }
+
+/* top */
+.top { background: var(--ink); color: var(--paper); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding-block: 12px; }
+.brand { font-family: var(--font-display); font-weight: 800; font-size: 26px; letter-spacing: -.02em; }
+.brand span { color: var(--amber); }
+.roles { display: flex; border: 2px solid #5B5788; }
+.roles button { background: transparent; border: 0; color: #CFCAF2; padding: 7px 16px; font-weight: 500; font-size: 15px; }
+.roles button[aria-pressed="true"] { background: var(--amber); color: var(--ink); font-weight: 600; }
+.tabs { background: var(--card); border-bottom: 2px solid var(--ink); }
+.tabs .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.tabs button { background: none; border: 0; border-bottom: 4px solid transparent; padding: 14px 16px 10px; font-weight: 500; white-space: nowrap; position: relative; }
+.tabs button[aria-selected="true"] { border-bottom-color: var(--violet); font-weight: 600; }
+.dot { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 6px; background: var(--amber); color: var(--ink); font-size: 12px; font-weight: 600; text-align: center; border: 1.5px solid var(--ink); }
+
+main { padding-block: 32px 72px; }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px 24px; margin-bottom: 24px; }
+.head h2 { font-weight: 800; font-size: clamp(30px, 4vw, 44px); line-height: 1.05; }
+.note { font-size: 14px; color: var(--ink-soft); }
+.box { background: var(--card); border: 2px solid var(--ink); }
+
+/* catalog */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.app { display: flex; flex-direction: column; gap: 14px; padding: 22px; }
+.app h3 { font-size: 26px; font-weight: 800; line-height: 1.1; }
+.app .btn { margin-top: auto; }
+.app .row1 { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.stock { font-family: var(--font-mono); font-size: 13px; font-weight: 600; padding: 2px 10px; border: 1.5px solid var(--green); background: #D8F3E8; color: #11694A; white-space: nowrap; }
+.stock.low { border-color: #B8791A; background: #FFF0CF; color: #7A4E0A; }
+.stock.out { border-color: var(--red); background: #FBE1E1; color: #8F2323; }
+.durs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.dur { background: var(--paper); border: 2px solid var(--ink); padding: 8px 6px; text-align: center; line-height: 1.25; }
+.dur b { display: block; font-family: var(--font-display); font-size: 17px; }
+.dur small { font-size: 13px; color: var(--ink-soft); }
+.dur[aria-pressed="true"] { background: var(--amber); }
+.dur[aria-pressed="true"] small { color: var(--ink); }
+.btn { background: var(--violet); color: #fff; border: 2px solid var(--ink); padding: 11px 20px; font-weight: 600; box-shadow: 4px 4px 0 var(--ink); }
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink); }
+.btn:disabled { background: #B9B6CF; color: #fff; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn.alt { background: var(--card); color: var(--ink); }
+.btn.sm { padding: 5px 12px; font-size: 14px; box-shadow: 3px 3px 0 var(--ink); }
+
+/* orders */
+.orders { display: grid; gap: 16px; }
+.order { padding: 20px 22px; display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 16px 28px; align-items: start; }
+.order h3 { font-size: 24px; font-weight: 800; }
+.kv { display: grid; gap: 6px; font-size: 15px; }
+.kv div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 5px; }
+.kv b { font-weight: 600; text-align: right; }
+.pill { display: inline-block; font-size: 13px; font-weight: 600; padding: 1px 10px; border: 1.5px solid var(--green); background: #D8F3E8; color: #11694A; }
+.pill.warn { border-color: #B8791A; background: #FFF0CF; color: #7A4E0A; }
+.pill.bad { border-color: var(--red); background: #FBE1E1; color: #8F2323; }
+.bar { height: 12px; background: var(--paper); border: 2px solid var(--ink); margin-top: 8px; }
+.bar i { display: block; height: 100%; background: var(--violet); }
+.bar.warn i { background: var(--amber); }
+.bar.bad i { background: var(--red); }
+.empty { padding: 40px 24px; text-align: center; color: var(--ink-soft); }
+
+/* notifs */
+.notifs { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.notifs li { display: grid; grid-template-columns: 16px 1fr auto; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--line); align-items: start; }
+.notifs li:last-child { border-bottom: 0; }
+.notifs li::before { content: ""; width: 12px; height: 12px; margin-top: 7px; background: var(--violet); }
+.notifs li.exp::before { background: var(--amber); }
+.notifs time { font-family: var(--font-mono); font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
+
+/* admin */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.tile { padding: 18px 20px; }
+.tile b { display: block; font-family: var(--font-display); font-size: 36px; font-weight: 800; line-height: 1.1; margin-top: 4px; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { text-align: left; font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); padding: 12px 16px; border-bottom: 2px solid var(--ink); white-space: nowrap; }
+td { padding: 11px 16px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+.stepper { display: inline-flex; align-items: center; border: 2px solid var(--ink); }
+.stepper button { width: 32px; height: 32px; border: 0; background: var(--paper); font-weight: 700; font-size: 18px; line-height: 1; }
+.stepper span { min-width: 40px; text-align: center; font-family: var(--font-mono); font-weight: 600; }
+h3.sec { font-size: 26px; font-weight: 800; margin: 32px 0 14px; }
+
+/* modal */
+.ov { position: fixed; inset: 0; background: rgba(29, 26, 59, .72); display: flex; align-items: flex-start; justify-content: center; padding: 20px 16px; overflow-y: auto; z-index: 50; }
+.modal { background: var(--card); border: 2px solid var(--ink); box-shadow: 10px 10px 0 var(--violet); width: 100%; max-width: 640px; margin-block: auto; }
+.modal > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--ink); color: var(--paper); padding: 14px 22px; }
+.modal > header h3 { font-size: 24px; font-weight: 800; }
+.x { background: none; border: 2px solid #5B5788; color: var(--paper); width: 36px; height: 36px; font-size: 20px; line-height: 1; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 2px solid var(--ink); }
+.steps div { padding: 10px 6px; text-align: center; font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); border-right: 1px solid var(--line); }
+.steps div:last-child { border-right: 0; }
+.steps div.on { background: var(--violet); color: #fff; font-weight: 600; }
+.steps div.done { background: var(--paper); color: var(--ink); }
+.body { padding: 24px 24px 26px; display: grid; gap: 18px; }
+.sum { padding: 14px 16px; background: var(--paper); border: 2px solid var(--ink); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sum b { font-family: var(--font-display); font-size: 20px; }
+.field { display: grid; gap: 6px; }
+.field label { font-weight: 600; font-size: 15px; }
+.field input { border: 2px solid var(--ink); padding: 10px 12px; background: #fff; width: 100%; }
+.field .hint { font-size: 13px; color: var(--ink-soft); }
+.field .err { font-size: 14px; color: var(--red); font-weight: 600; min-height: 0; }
+.field input.bad { border-color: var(--red); }
+.pay { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pay button { background: var(--paper); border: 2px solid var(--ink); padding: 12px; text-align: left; font-weight: 600; }
+.pay button small { display: block; font-weight: 400; color: var(--ink-soft); }
+.pay button[aria-pressed="true"] { background: var(--amber); }
+.pay button[aria-pressed="true"] small { color: var(--ink); }
+.qrbox { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; border: 2px dashed var(--ink-soft); padding: 16px; }
+canvas { border: 2px solid var(--ink); background: #fff; image-rendering: pixelated; max-width: 100%; }
+.proc { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.proc li { display: grid; grid-template-columns: 34px 1fr auto; gap: 14px; align-items: center; padding: 12px 14px; border: 2px solid var(--line); color: var(--ink-soft); }
+.proc li i { font-style: normal; width: 34px; height: 34px; display: grid; place-items: center; border: 2px solid var(--line); font-family: var(--font-mono); font-weight: 600; }
+.proc li.run { border-color: var(--violet); color: var(--ink); }
+.proc li.run i { border-color: var(--violet); background: var(--violet); color: #fff; }
+.proc li.ok { border-color: var(--green); color: var(--ink); background: #F1FBF6; }
+.proc li.ok i { border-color: var(--green); background: var(--green); color: #fff; }
+.proc li.fail { border-color: var(--red); background: #FDF1F1; color: var(--ink); }
+.proc li.fail i { border-color: var(--red); background: var(--red); color: #fff; }
+.mail { border: 2px solid var(--ink); font-size: 15px; }
+.mail header { background: var(--paper); border-bottom: 2px solid var(--ink); padding: 10px 14px; display: grid; gap: 2px; font-size: 14px; }
+.mail div.m { padding: 14px; display: grid; gap: 6px; }
+.mail code { font-family: var(--font-mono); background: var(--paper); padding: 1px 8px; border: 1px solid var(--line); }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* toasts */
+.toasts { position: fixed; right: 16px; bottom: 16px; display: grid; gap: 10px; z-index: 80; max-width: calc(100vw - 32px); }
+.toast { background: var(--ink); color: var(--paper); border-left: 6px solid var(--amber); padding: 12px 16px; font-size: 15px; box-shadow: 6px 6px 0 rgba(79, 53, 232, .5); max-width: 380px; }
+
+@media (max-width: 820px) {
+  .order { grid-template-columns: 1fr; }
+  .pay { grid-template-columns: 1fr; }
+  main { padding-block: 24px 56px; }
+}
+@media (max-width: 480px) {
+  .steps div { font-size: 10px; padding-inline: 2px; letter-spacing: .02em; }
+  .body { padding: 18px 16px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="wrap">
+    <div class="brand">Premi<span>Apps</span></div>
+    <div class="roles" role="group" aria-label="Masuk sebagai" id="roles">
+      <button data-role="customer" aria-pressed="true">Customer</button>
+      <button data-role="reseller" aria-pressed="false">Reseller</button>
+      <button data-role="admin" aria-pressed="false">Admin</button>
+    </div>
+  </div>
+</div>
+<nav class="tabs"><div class="wrap" id="tabs" role="tablist"></div></nav>
+<main><div class="wrap" id="view"></div></main>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div id="modalRoot"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Data ---------- */
+  var DAYS = [7, 30, 365];
+  var DUR = { 7: '7 hari', 30: '1 bulan', 365: '1 tahun' };
+  var APPS0 = [
+    { id: 'capcut', name: 'CapCut Pro', note: 'Editor video', stock: 12, price: { 7: 15000, 30: 45000, 365: 350000 } },
+    { id: 'canva', name: 'Canva Pro', note: 'Desain grafis', stock: 8, price: { 7: 12000, 30: 35000, 365: 280000 } },
+    { id: 'adobe', name: 'Adobe Creative Cloud', note: 'Paket kreatif', stock: 5, price: { 7: 30000, 30: 95000, 365: 800000 } },
+    { id: 'ms365', name: 'Microsoft 365', note: 'Word, Excel, PowerPoint', stock: 15, price: { 7: 10000, 30: 30000, 365: 250000 } },
+    { id: 'notion', name: 'Notion', note: 'Catatan dan kolaborasi', stock: 2, price: { 7: 9000, 30: 28000, 365: 220000 } },
+    { id: 'yt', name: 'YouTube Premium', note: 'Tanpa iklan', stock: 0, price: { 7: 8000, 30: 25000, 365: 200000 } }
+  ];
+  var RESELLER_DISCOUNT = 0.2;
+  var KEY = 'premiapps_proto_v1';
+  var DAY = 864e5;
+
+  function seed() {
+    var n = Date.now();
+    return {
+      apps: JSON.parse(JSON.stringify(APPS0)),
+      orders: [
+        mk('PA-1003', 'canva', 30, 'rina@contoh.id', '081200000001', 'QRIS', 'customer', n - 28 * DAY),
+        mk('PA-1002', 'ms365', 365, 'rina@contoh.id', '081200000001', 'Transfer', 'customer', n - 40 * DAY),
+        mk('PA-1001', 'capcut', 7, 'rina@contoh.id', '081200000001', 'QRIS', 'customer', n - 9 * DAY),
+        mk('PA-1000', 'notion', 30, 'toko.dika@contoh.id', '081200000002', 'Transfer', 'reseller', n - 12 * DAY)
+      ],
+      notifs: [],
+      seq: 1004
+    };
+  }
+  function mk(id, appId, days, email, phone, pay, role, at) {
+    var app = APPS0.filter(function (a) { return a.id === appId; })[0];
+    var p = app.price[days];
+    if (role === 'reseller') p = Math.round(p * (1 - RESELLER_DISCOUNT));
+    return { id: id, appId: appId, days: days, email: email, phone: phone, pay: pay, role: role, price: p, orderedAt: at, expiresAt: at + days * DAY, payStatus: 'Lunas', mailStatus: 'Terkirim' };
+  }
+  var S;
+  function load() {
+    try { var r = localStorage.getItem(KEY); if (r) { S = JSON.parse(r); if (S && S.apps && S.orders) return; } } catch (e) {}
+    S = seed();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  load();
+
+  var role = 'customer';
+  var view = 'katalog';
+  var sel = {};
+
+  /* ---------- Helpers ---------- */
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function rp(n) { return 'Rp ' + Number(n).toLocaleString('id-ID'); }
+  function fd(t) { return new Date(t).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  function ft(t) { return new Date(t).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  function app(id) { return S.apps.filter(function (a) { return a.id === id; })[0]; }
+  function price(a, d) { var p = a.price[d]; return role === 'reseller' ? Math.round(p * (1 - RESELLER_DISCOUNT)) : p; }
+  function daysLeft(o) { return Math.ceil((o.expiresAt - Date.now()) / DAY); }
+  function state(o) { var d = daysLeft(o); return d <= 0 ? 'bad' : d <= 3 ? 'warn' : 'ok'; }
+  function stockCls(n) { return n <= 0 ? 'out' : n <= 3 ? 'low' : ''; }
+  function stockTxt(n) { return n <= 0 ? 'Stok habis' : 'Stok ' + n; }
+  function $(s, r) { return (r || document).querySelector(s); }
+  function toast(msg) {
+    var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+    $('#toasts').appendChild(t); setTimeout(function () { t.remove(); }, 4200);
+  }
+  function notify(msg, kind) { S.notifs.unshift({ t: Date.now(), msg: msg, kind: kind || '', role: role }); S.notifs = S.notifs.slice(0, 60); }
+  function myOrders() { return S.orders.filter(function (o) { return o.role === role; }).sort(function (a, b) { return b.orderedAt - a.orderedAt; }); }
+  function expiring() { return myOrders().filter(function (o) { return daysLeft(o) <= 3; }); }
+
+  /* ---------- Shell ---------- */
+  function tabsFor() {
+    if (role === 'admin') return [['dash', 'Dashboard'], ['stok', 'Stok aplikasi'], ['pesanan', 'Semua pesanan']];
+    return [['katalog', 'Katalog'], ['riwayat', 'Riwayat transaksi'], ['notif', 'Notifikasi']];
+  }
+  function renderTabs() {
+    var list = tabsFor(), h = '';
+    list.forEach(function (t) {
+      var extra = '';
+      if (t[0] === 'notif') { var c = expiring().length + S.notifs.filter(function (n) { return n.role === role; }).length; if (c) extra = '<span class="dot">' + c + '</span>'; }
+      h += '<button role="tab" data-view="' + t[0] + '" aria-selected="' + (view === t[0]) + '">' + t[1] + extra + '</button>';
+    });
+    $('#tabs').innerHTML = h;
+  }
+  function render() { renderTabs(); var f = { katalog: vKatalog, riwayat: vRiwayat, notif: vNotif, dash: vDash, stok: vStok, pesanan: vPesanan }[view]; $('#view').innerHTML = f(); }
+
+  /* ---------- Customer views ---------- */
+  function vKatalog() {
+    var h = '<div class="head"><div><p class="label">Katalog aplikasi</p><h2>Pilih aplikasi dan paket</h2></div><p class="note">Harga contoh' + (role === 'reseller' ? ' · harga reseller diskon 20%' : '') + '</p></div><div class="grid">';
+    S.apps.forEach(function (a) {
+      var d = sel[a.id] || 30;
+      h += '<article class="box app"><div class="row1"><div><h3>' + esc(a.name) + '</h3><p class="note">' + esc(a.note) + '</p></div><span class="stock ' + stockCls(a.stock) + '">' + stockTxt(a.stock) + '</span></div><div class="durs">';
+      DAYS.forEach(function (x) { h += '<button class="dur" data-app="' + a.id + '" data-d="' + x + '" aria-pressed="' + (d === x) + '"><b>' + DUR[x] + '</b><small>' + rp(price(a, x)) + '</small></button>'; });
+      h += '</div><button class="btn" data-order="' + a.id + '"' + (a.stock <= 0 ? ' disabled' : '') + '>' + (a.stock <= 0 ? 'Stok habis' : 'Pesan sekarang') + '</button></article>';
+    });
+    return h + '</div>';
+  }
+  function orderCard(o, withEmail) {
+    var a = app(o.appId), st = state(o), dl = daysLeft(o);
+    var used = Math.min(100, Math.max(0, (Date.now() - o.orderedAt) / (o.expiresAt - o.orderedAt) * 100));
+    var label = st === 'bad' ? '<span class="pill bad">Sudah hangus</span>' : st === 'warn' ? '<span class="pill warn">Hangus ' + dl + ' hari lagi</span>' : '<span class="pill">Aktif · sisa ' + dl + ' hari</span>';
+    return '<article class="box order"><div><p class="label">' + esc(o.id) + '</p><h3>' + esc(a ? a.name : o.appId) + '</h3><p class="note">Paket ' + DUR[o.days] + ' · ' + rp(o.price) + '</p><div style="margin-top:10px">' + label + '</div></div>' +
+      '<div class="kv"><div><span>Dipesan</span><b>' + fd(o.orderedAt) + '</b></div><div><span>Berlaku hingga</span><b>' + fd(o.expiresAt) + '</b></div><div><span>Pembayaran</span><b>' + esc(o.pay) + ' <span class="pill">' + esc(o.payStatus) + '</span></b></div></div>' +
+      '<div><div class="kv"><div><span>Email akun</span><b><span class="pill">' + esc(o.mailStatus) + '</span></b></div><div><span>Dikirim ke</span><b>' + esc(o.email) + '</b></div></div><div class="bar ' + (st === 'ok' ? '' : st) + '" role="img" aria-label="Masa berlaku terpakai ' + Math.round(used) + ' persen"><i style="width:' + used.toFixed(0) + '%"></i></div></div></article>';
+  }
+  function vRiwayat() {
+    var list = myOrders();
+    var h = '<div class="head"><div><p class="label">Output 5</p><h2>Riwayat transaksi</h2></div><p class="note">' + list.length + ' pesanan</p></div>';
+    if (!list.length) return h + '<div class="box empty">Belum ada pesanan. Buka Katalog untuk memesan aplikasi pertama.</div>';
+    h += '<div class="orders">'; list.forEach(function (o) { h += orderCard(o); }); return h + '</div>';
+  }
+  function vNotif() {
+    var h = '<div class="head"><div><p class="label">Output 1 · 2 · 3 · 4</p><h2>Notifikasi</h2></div></div>';
+    var items = [];
+    expiring().forEach(function (o) {
+      var a = app(o.appId), dl = daysLeft(o);
+      items.push({ t: Date.now(), cls: 'exp', msg: dl <= 0 ? (a.name + ' (' + o.id + ') sudah hangus pada ' + fd(o.expiresAt) + '. Pesan ulang untuk lanjut memakai.') : (a.name + ' (' + o.id + ') akan hangus ' + dl + ' hari lagi, berlaku hingga ' + fd(o.expiresAt) + '.') });
+    });
+    S.notifs.filter(function (n) { return n.role === role; }).forEach(function (n) { items.push({ t: n.t, cls: '', msg: n.msg }); });
+    if (!items.length) return h + '<div class="box empty">Belum ada notifikasi.</div>';
+    h += '<div class="box"><ul class="notifs">'; items.forEach(function (n) { h += '<li class="' + n.cls + '"><span>' + esc(n.msg) + '</span><time>' + ft(n.t) + '</time></li>'; });
+    return h + '</ul></div>';
+  }
+
+  /* ---------- Admin views ---------- */
+  function vDash() {
+    var rev = S.orders.reduce(function (s, o) { return s + o.price; }, 0);
+    var act = S.orders.filter(function (o) { return daysLeft(o) > 0; }).length;
+    var low = S.apps.filter(function (a) { return a.stock <= 3; }).length;
+    var h = '<div class="head"><div><p class="label">Admin PremiApps</p><h2>Dashboard</h2></div><button class="btn alt sm" data-reset>Reset data contoh</button></div><div class="tiles">';
+    h += '<div class="box tile"><span class="label">Total pesanan</span><b>' + S.orders.length + '</b></div>';
+    h += '<div class="box tile"><span class="label">Langganan aktif</span><b>' + act + '</b></div>';
+    h += '<div class="box tile"><span class="label">Stok menipis</span><b>' + low + '</b></div>';
+    h += '<div class="box tile"><span class="label">Pendapatan contoh</span><b style="font-size:28px">' + rp(rev) + '</b></div></div>';
+    h += '<h3 class="sec" style="margin-top:0">Pesanan terbaru</h3>' + ordersTable(S.orders.slice().sort(function (a, b) { return b.orderedAt - a.orderedAt; }).slice(0, 5));
+    return h;
+  }
+  function vStok() {
+    var h = '<div class="head"><div><p class="label">Proses 2</p><h2>Stok aplikasi</h2></div><p class="note">Stok berkurang otomatis saat ada pesanan</p></div><div class="box tablewrap"><table><thead><tr><th>Aplikasi</th><th>Status</th><th>Stok</th></tr></thead><tbody>';
+    S.apps.forEach(function (a) {
+      h += '<tr><td><b>' + esc(a.name) + '</b></td><td><span class="stock ' + stockCls(a.stock) + '">' + stockTxt(a.stock) + '</span></td><td><div class="stepper"><button data-stock="' + a.id + '" data-by="-1" aria-label="Kurangi stok ' + esc(a.name) + '">−</button><span>' + a.stock + '</span><button data-stock="' + a.id + '" data-by="1" aria-label="Tambah stok ' + esc(a.name) + '">+</button></div></td></tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+  function ordersTable(list) {
+    if (!list.length) return '<div class="box empty">Belum ada pesanan.</div>';
+    var h = '<div class="box tablewrap"><table><thead><tr><th>ID</th><th>Aplikasi</th><th>Paket</th><th>Pembeli</th><th>Bayar</th><th>Dipesan</th><th>Hingga</th><th>Status</th></tr></thead><tbody>';
+    list.forEach(function (o) {
+      var a = app(o.appId), st = state(o);
+      h += '<tr><td class="mono">' + esc(o.id) + '</td><td>' + esc(a ? a.name : o.appId) + '</td><td>' + DUR[o.days] + '</td><td>' + esc(o.email) + ' <span class="note">(' + o.role + ')</span></td><td>' + esc(o.pay) + '</td><td>' + fd(o.orderedAt) + '</td><td>' + fd(o.expiresAt) + '</td><td><span class="pill ' + (st === 'ok' ? '' : st) + '">' + (st === 'bad' ? 'Hangus' : st === 'warn' ? 'Segera hangus' : 'Aktif') + '</span></td></tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+  function vPesanan() {
+    return '<div class="head"><div><p class="label">Output 5</p><h2>Semua pesanan</h2></div><p class="note">' + S.orders.length + ' pesanan dari customer dan reseller</p></div>' + ordersTable(S.orders.slice().sort(function (a, b) { return b.orderedAt - a.orderedAt; }));
+  }
+
+  /* ---------- Checkout modal ---------- */
+  var C = null, runToken = 0;
+  function openCheckout(appId) {
+    var a = app(appId);
+    C = { appId: appId, days: sel[appId] || 30, email: '', phone: '', pay: 'QRIS', step: 1, errE: '', errP: '' };
+    drawModal(); var f = $('#fEmail'); if (f) f.focus();
+  }
+  function closeModal() { runToken++; C = null; $('#modalRoot').innerHTML = ''; render(); }
+  function stepBar() {
+    var n = ['Data', 'Bayar', 'Proses', 'Hasil'];
+    return '<div class="steps">' + n.map(function (t, i) { return '<div class="' + (C.step === i + 1 ? 'on' : C.step > i + 1 ? 'done' : '') + '">' + (i + 1) + '. ' + t + '</div>'; }).join('') + '</div>';
+  }
+  function summary() {
+    var a = app(C.appId);
+    return '<div class="sum"><span>' + esc(a.name) + ' · ' + DUR[C.days] + '</span><b>' + rp(price(a, C.days)) + '</b></div>';
+  }
+  function drawModal() {
+    var a = app(C.appId), body = '', title = 'Pesan ' + a.name;
+    if (C.step === 1) {
+      body = summary() +
+        '<p class="label">Input 1 · 2 · 4 · 5</p>' +
+        '<div class="field"><label for="fEmail">Email penerima akun</label><input id="fEmail" type="email" autocomplete="email" placeholder="nama@email.com" value="' + esc(C.email) + '" class="' + (C.errE ? 'bad' : '') + '"><span class="hint">User dan password aplikasi dikirim ke email ini.</span><span class="err">' + esc(C.errE) + '</span></div>' +
+        '<div class="field"><label for="fPhone">Nomor telepon</label><input id="fPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx" value="' + esc(C.phone) + '" class="' + (C.errP ? 'bad' : '') + '"><span class="hint">Dipakai untuk mengirim berita dan informasi.</span><span class="err">' + esc(C.errP) + '</span></div>' +
+        '<div class="field"><label>Durasi</label><div class="durs">' + DAYS.map(function (x) { return '<button class="dur" data-cd="' + x + '" aria-pressed="' + (C.days === x) + '"><b>' + DUR[x] + '</b><small>' + rp(price(a, x)) + '</small></button>'; }).join('') + '</div></div>' +
+        '<div class="actions"><button class="btn alt" data-close>Batal</button><button class="btn" data-next1>Lanjut ke pembayaran</button></div>';
+    } else if (C.step === 2) {
+      body = summary() + '<p class="label">Input 3 · Payment gateway</p>' +
+        '<div class="pay"><button data-pay="QRIS" aria-pressed="' + (C.pay === 'QRIS') + '">QRIS<small>Scan dengan e-wallet atau m-banking</small></button><button data-pay="Transfer" aria-pressed="' + (C.pay === 'Transfer') + '">Transfer bank<small>Transfer ke rekening</small></button></div>' +
+        (C.pay === 'QRIS'
+          ? '<div class="qrbox"><canvas id="qr" width="150" height="150" aria-label="QR contoh"></canvas><div><b>QRIS contoh</b><p class="note">Ini simulasi. Tidak ada pembayaran sungguhan yang diproses.</p></div></div>'
+          : '<div class="qrbox"><div><b class="mono">0000 0000 00</b><p class="note">Bank contoh a.n. PremiApps (simulasi). Tidak ada pembayaran sungguhan.</p></div></div>') +
+        '<div class="actions"><button class="btn alt" data-back>Kembali</button><button class="btn" data-pay-now>Saya sudah bayar (simulasi)</button></div>';
+    } else if (C.step === 3) {
+      body = summary() + '<p class="label">Proses 1 – 5</p><ol class="proc" id="proc">' +
+        ['Pengecekan stok aplikasi', 'Proses pembayaran', 'Pengiriman email user dan password', 'Update status "sudah terbeli"'].map(function (t, i) { return '<li data-i="' + i + '"><i>' + (i + 1) + '</i><span>' + t + '</span><em class="note" style="font-style:normal"></em></li>'; }).join('') + '</ol><div id="procEnd"></div>';
+    } else {
+      var o = C.order; title = 'Pesanan berhasil';
+      body = '<div class="kv"><div><span>ID pesanan</span><b>' + esc(o.id) + '</b></div><div><span>Status pembayaran</span><b><span class="pill">Lunas</span> ' + esc(o.pay) + '</b></div><div><span>Status pengiriman email</span><b><span class="pill">Terkirim</span></b></div><div><span>Berlaku hingga</span><b>' + fd(o.expiresAt) + '</b></div></div>' +
+        '<div class="mail"><header><span><b>Kepada:</b> ' + esc(o.email) + '</span><span><b>Subjek:</b> Akun ' + esc(a.name) + ' (' + DUR[o.days] + ')</span></header><div class="m"><p>Halo, terima kasih sudah memesan.</p><p>User: <code>' + esc(o.cred.user) + '</code></p><p>Password: <code>' + esc(o.cred.pass) + '</code></p><p>Berlaku hingga ' + fd(o.expiresAt) + '.</p><p class="note">Contoh email (simulasi). Tidak ada email yang dikirim sungguhan.</p></div></div>' +
+        '<div class="actions"><button class="btn alt" data-close>Tutup</button><button class="btn" data-go-riwayat>Lihat riwayat</button></div>';
+    }
+    $('#modalRoot').innerHTML = '<div class="ov" data-ov><div class="modal" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><header><h3>' + esc(title) + '</h3><button class="x" data-close aria-label="Tutup">×</button></header>' + stepBar() + '<div class="body">' + body + '</div></div></div>';
+    if (C.step === 2 && C.pay === 'QRIS') drawQR();
+  }
+  function drawQR() {
+    var c = $('#qr'); if (!c) return; var g = c.getContext('2d'), n = 25, s = 6, seed = 7;
+    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    g.fillStyle = '#fff'; g.fillRect(0, 0, 150, 150); g.fillStyle = '#1D1A3B';
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) { var f = (x < 8 && y < 8) || (x > 16 && y < 8) || (x < 8 && y > 16); if (!f && rnd() > 0.52) g.fillRect(x * s, y * s, s, s); }
+    [[0, 0], [17, 0], [0, 17]].forEach(function (p) { g.fillStyle = '#1D1A3B'; g.fillRect(p[0] * s, p[1] * s, 7 * s, 7 * s); g.fillStyle = '#fff'; g.fillRect((p[0] + 1) * s, (p[1] + 1) * s, 5 * s, 5 * s); g.fillStyle = '#1D1A3B'; g.fillRect((p[0] + 2) * s, (p[1] + 2) * s, 3 * s, 3 * s); });
+  }
+  function pass8() { var c = 'abcdefghjkmnpqrstuvwxyz23456789', s = ''; for (var i = 0; i < 8; i++) s += c[Math.floor(Math.random() * c.length)]; return s; }
+
+  function runProcess() {
+    var token = ++runToken, a = app(C.appId), items = document.querySelectorAll('#proc li');
+    function setS(i, cls, txt) { var li = items[i]; if (!li) return; li.className = cls; li.querySelector('em').textContent = txt || ''; }
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    (async function () {
+      setS(0, 'run', 'memeriksa…'); await wait(700); if (token !== runToken) return;
+      if (a.stock <= 0) { setS(0, 'fail', 'Stok habis'); $('#procEnd').innerHTML = '<p class="note" style="color:var(--red);font-weight:600">Stok habis saat pembayaran diproses. Pesanan dibatalkan dan tidak ada yang ditagih.</p><div class="actions" style="margin-top:12px"><button class="btn" data-close>Tutup</button></div>'; return; }
+      setS(0, 'ok', 'Tersedia'); setS(1, 'run', 'memverifikasi…'); await wait(800); if (token !== runToken) return;
+      setS(1, 'ok', 'Lunas'); setS(2, 'run', 'mengirim…'); await wait(800); if (token !== runToken) return;
+      setS(2, 'ok', 'Terkirim'); setS(3, 'run', 'menyimpan…'); await wait(600); if (token !== runToken) return;
+      a.stock -= 1;
+      var id = 'PA-' + (S.seq++), now = Date.now();
+      var o = { id: id, appId: a.id, days: C.days, email: C.email, phone: C.phone, pay: C.pay, role: role, price: price(a, C.days), orderedAt: now, expiresAt: now + C.days * DAY, payStatus: 'Lunas', mailStatus: 'Terkirim' };
+      var cred = { user: C.email.split('@')[0] + '.' + a.id, pass: pass8() };
+      S.orders.push(o);
+      notify('Pembelian ' + a.name + ' (' + DUR[o.days] + ') berhasil. ID ' + id + '.');
+      notify('Pembayaran ' + id + ' lunas via ' + o.pay + '.');
+      notify('Email akun ' + a.name + ' terkirim ke ' + o.email + '.');
+      notify(a.name + ' berlaku hingga ' + fd(o.expiresAt) + '.', 'exp');
+      save(); setS(3, 'ok', 'Selesai'); toast('Pembelian ' + a.name + ' berhasil'); await wait(500); if (token !== runToken) return;
+      o.cred = cred; C.order = o; C.step = 4; drawModal();
+    })();
+  }
+
+  /* ---------- Events ---------- */
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t) { if (e.target.hasAttribute && e.target.hasAttribute('data-ov')) closeModal(); return; }
+    if (t.dataset.role) { role = t.dataset.role; view = role === 'admin' ? 'dash' : 'katalog'; [].forEach.call(document.querySelectorAll('#roles button'), function (b) { b.setAttribute('aria-pressed', b === t); }); render(); return; }
+    if (t.dataset.view) { view = t.dataset.view; render(); return; }
+    if (t.dataset.d && t.dataset.app) { sel[t.dataset.app] = +t.dataset.d; render(); return; }
+    if (t.dataset.order) { openCheckout(t.dataset.order); return; }
+    if (t.hasAttribute('data-close')) { closeModal(); return; }
+    if (t.hasAttribute('data-reset')) { S = seed(); save(); toast('Data contoh dikembalikan'); render(); return; }
+    if (t.dataset.stock) { var a = app(t.dataset.stock); a.stock = Math.max(0, a.stock + (+t.dataset.by)); save(); render(); return; }
+    if (!C) return;
+    if (t.dataset.cd) { keep(); C.days = +t.dataset.cd; drawModal(); return; }
+    if (t.hasAttribute('data-next1')) {
+      keep(); var okE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(C.email), okP = /^[0-9+\-\s]{8,16}$/.test(C.phone);
+      C.errE = okE ? '' : 'Isi email yang valid, contoh nama@email.com.'; C.errP = okP ? '' : 'Isi nomor telepon 8 sampai 16 angka.';
+      if (okE && okP) C.step = 2; drawModal(); return;
+    }
+    if (t.dataset.pay) { C.pay = t.dataset.pay; drawModal(); return; }
+    if (t.hasAttribute('data-back')) { C.step = 1; drawModal(); return; }
+    if (t.hasAttribute('data-pay-now')) { C.step = 3; drawModal(); runProcess(); return; }
+    if (t.hasAttribute('data-go-riwayat')) { closeModal(); view = 'riwayat'; render(); return; }
+  });
+  function keep() { var e = $('#fEmail'), p = $('#fPhone'); if (e) C.email = e.value.trim(); if (p) C.phone = p.value.trim(); }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && C) closeModal(); });
+
+  render();
+})();
+</script>
+</body>
+</html>
